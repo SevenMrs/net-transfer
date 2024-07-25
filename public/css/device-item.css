@@ -1,0 +1,50 @@
+#device-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+#device-list li {
+    display: flex;
+    justify-content: center; /* 中心对齐容器 */
+    align-items: center; /* 垂直中心对齐容器 */
+    max-width: 100px;
+    box-sizing: border-box; /* 包括内边距和边框在元素的总宽度和高度内 */
+    margin-bottom: 10px; /* 列表项之间的间距 */
+}
+
+.device-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center; /* 垂直居中 */
+    text-align: center; /* 文字居中对齐 */
+}
+
+.device-img {
+    background-color: #4285f4;
+    width: 55px;
+    height: 55px;
+    text-align: center;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2px; /* 图片与文字之间的间距 */
+}
+
+.device-img img {
+    max-width: 80%;
+    max-height: 80%;
+    object-fit: contain; /* 保持图片的长宽比 */
+}
+
+.device-item-nickname {
+    margin-top: 3px;
+    font-size: 15px;
+}
+
+.device-item-name {
+    margin-top: 2px;
+    font-size: 12px;
+    color: gray;
+}
