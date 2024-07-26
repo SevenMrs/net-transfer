@@ -9,7 +9,7 @@
 
 /**
  * 监控浏览器的关闭情况
- * @param {WebSocket} ws 
+ * @param {WebSocket} ws
  */
 function monitorClose(ws) {
     function sendCloseMessage() {
@@ -35,7 +35,7 @@ function monitorClose(ws) {
 function monitor(ws) {
     /**
      * node server message monitor
-     * @param {string} event 
+     * @param {string} event
      */
     ws.onmessage = (event) => {
         const message = JSON.parse(event.data);
@@ -65,29 +65,28 @@ function monitor(ws) {
 
 /**
  * 将房间中已有设备加入到页面中
- * @param {array} list 
+ * @param {array} list
  */
 function handleOther(list) {
-    const deviceList = document.getElementById('device-list');
     list.forEach(info => handleJoin(info));
 }
 
 /**
  * 将新的设备新增到页面中
- * @param {deivce.info} info 
+ * @param {deivce.info} info
  */
 function handleJoin(info) {
-    
+
     /**
      * device item image
-     * @param {string} deivceType 
-     * @returns 
+     * @param {string} deivceType
+     * @returns
      */
     function deviceElementPush(deivceType) {
         const divEle = document.createElement('div');
         const imgEle = document.createElement('img');
         divEle.className = 'device-img';
-        if (deivceType.indexOf('iOS') != -1 || deivceType.indexOf('Android') != -1) {
+        if (deivceType.indexOf('iOS') !== -1 || deivceType.indexOf('Android') !== -1) {
             imgEle.src = "/public/image/phone.png";
         } else {
             imgEle.src = "/public/image/computer.png";
@@ -124,7 +123,7 @@ function handleJoin(info) {
 
 /**
  * 设备离开, 删除页面列表
- * @param {device.id} id 
+ * @param {device.id} id
  */
 function handleLeave(id) {
     // 查找要删除的列表项
@@ -138,8 +137,8 @@ function handleLeave(id) {
 
 /**
  * 给node server发送消息
- * @param {WebSocket} ws 
- * @param {Object} message 
+ * @param {WebSocket} ws
+ * @param {Object} message
  */
 function wsSendMsg(ws, message) {
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -157,7 +156,7 @@ function initDeviceId() {
 
     // 检查是否已有 deviceId
     for (let cookie of cookieArr) {
-        let [name, value] = cookie.split('=');
+        let [name] = cookie.split('=');
         if (name === 'deviceId') return;
     }
 
