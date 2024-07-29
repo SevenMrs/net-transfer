@@ -1,5 +1,6 @@
 let peer;
 let channel;
+let targetPeerId;
 
 /**
  * 连接到目标设备
@@ -76,8 +77,21 @@ function answer(message) {
                 'target': message.sender,
                 'data': peer.localDescription,
             });
+            targetPeerId = message.sender;
+            appendInfoElement();
         })
         .catch(error => console.error('Error creating answer:', error));
+}
+
+function appendInfoElement() {
+    const connection = document.getElementById('connection');
+    connection.textContent = `已连接`;
+}
+
+function updateInfoElement(id) {
+    if (id !== targetPeerId) return;
+    const connection = document.getElementById('connection');
+    connection.textContent = `连接已断开`;
 }
 
 window.onload = function () {

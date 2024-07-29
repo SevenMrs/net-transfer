@@ -4,7 +4,7 @@
  */
 function monitorClose(ws) {
     function sendCloseMessage() {
-        wsSendMsg(ws, { 'type': 'disconnect' });
+        wsSendMsg(ws, {'type': 'disconnect'});
         ws.close();
     }
 
@@ -37,7 +37,7 @@ function monitorMessage(ws) {
                 handleJoin(message.info);
                 break;
             case 'ping':
-                wsSendMsg(ws, { 'type': 'pong' });
+                wsSendMsg(ws, {'type': 'pong'});
                 break;
             case 'leave':
                 console.log(message.message);
@@ -50,12 +50,22 @@ function monitorMessage(ws) {
                 answer(message);
                 break;
             case 'answer':
-                peer.setRemoteDescription(message.data).then(() => console.log('通道终点接入成功!'));
+                reply(message);
                 break;
             default:
                 break;
         }
     }
+}
+
+/**
+ * 处理回复业务
+ * @param message
+ */
+function reply(message) {
+    peer.setRemoteDescription(message.data).then(() => console.log('通道终点接入成功!'));
+    targetPeerId = message.sender;
+    appendInfoElement();
 }
 
 /**
@@ -131,6 +141,7 @@ function handleLeave(id) {
         // 从列表中删除
         listItem.remove();
     }
+    updateInfoElement(id);
 }
 
 /**

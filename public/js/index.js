@@ -2,7 +2,7 @@ let ws;
 (function () {
     initDeviceId();
     console.log('设备打开进入页面, 准备连接远程服务加入房间🔗');
-    ws = new WebSocket('ws://192.168.1.6:3000');
+    ws = new WebSocket('ws://10.0.1.120:3000');
     ws.onopen = () => { console.log('服务连接成功') }
     monitorClose(ws);
     monitorMessage(ws);
