@@ -6,32 +6,37 @@ let channel;
  * @param target
  */
 function connectToDevice(target) {
-    if (!peer) {
-        console.error('Peer connection is not init!')
-        return;
-    }
     channel = peer.createDataChannel(generateUUID());
-    channel.onopen = function () {
-        console.log('通道打开成功!')
-    }
-    channel.onmessage = function (ev) {
-        console.log(ev.data);
-    }
+    channel.onopen = () => console.log("传输通道连接成功!");
+    channel.onerror = e => console.error('Data Channel Error:', e);
+    channel.onclose = () => console.log("Data channel closed");
+    channel.onmessage = e => console.log(e.data);
+    console.log('节点准备就绪, 发送信息连接远程节点!');
 
     peer.createOffer()
-        .then(offer => {
-            console.log('创建的 offer:', offer);
-            return peer.setLocalDescription(offer);
+        .then(offer => peer.setLocalDescription(offer))
+        .then(() => {
+            // Wait for ICE gathering to complete
+            return new Promise(resolve => {
+                if (peer.iceGatheringState === 'complete') {
+                    resolve();
+                } else {
+                    peer.addEventListener('icegatheringstatechange', () => {
+                        if (peer.iceGatheringState === 'complete') {
+                            resolve();
+                        }
+                    });
+                }
+            });
         })
         .then(() => {
-            console.log('本地SDP设置成功!')
             wsSendMsg(ws, {
                 'type': 'channel',
                 'target': target,
                 'data': peer.localDescription,
-            })
+            });
         })
-        .catch(error => console.log('设置SDP时发生错误:', error));
+        .catch(error => console.error('Error creating offer:', error));
 }
 
 /**
@@ -39,38 +44,43 @@ function connectToDevice(target) {
  * @param message
  */
 function answer(message) {
-    if (!peer) {
-        console.error('Peer connection is not init!')
-        return;
-    }
-    console.log(message);
+    peer.ondatachannel = e => {
+        channel = e.channel;
+        channel.onmessage = e => console.log(e.data);
+        channel.onopen = () => console.log("传输通道接入成功!");
+        channel.onerror = e => console.error('Data Channel Error:', e);
+        channel.onclose = () => console.log("Data channel closed");
+    };
 
-    peer.setRemoteDescription(message.data);
-
-    peer.createAnswer()
+    peer.setRemoteDescription(new RTCSessionDescription(message.data))
+        .then(() => console.log('通道起始节点加入成功!'))
+        .then(() => peer.createAnswer())
         .then(answer => peer.setLocalDescription(answer))
         .then(() => {
-            peer.ondatachannel = e => {
-                channel = e.channel;
-                console.log('收到数据通道事件', channel.label);
-                channel.onopen = function () {
-                    console.log('远程通道加入成功!');
+            // Wait for ICE gathering to complete
+            return new Promise(resolve => {
+                if (peer.iceGatheringState === 'complete') {
+                    resolve();
+                } else {
+                    peer.addEventListener('icegatheringstatechange', () => {
+                        if (peer.iceGatheringState === 'complete') {
+                            resolve();
+                        }
+                    });
                 }
-                channel.onmessage = function (e) {
-                    console.log(e.data);
-                }
-            }
-            console.log('本地SDP设置成功!');
-            wsSendMsg(ws, {
-                type: 'answer',
-                target: message.sender,
-                data: peer.localDescription,
             });
         })
-        .catch(error => console.log('设置SDP时发生错误:', error));
+        .then(() => {
+            wsSendMsg(ws, {
+                'type': 'answer',
+                'target': message.sender,
+                'data': peer.localDescription,
+            });
+        })
+        .catch(error => console.error('Error creating answer:', error));
 }
 
 window.onload = function () {
     peer = new RTCPeerConnection();
-    console.log('RTCPeerConnection 已初始化');
+    console.log('WebRTC Peer Connection Init Success!');
 }
