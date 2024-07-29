@@ -94,5 +94,10 @@ export type message = {
     type: string;
     sender?: string;
     target?: string;
-    message: string;
+    message?: string;
+    data?: RTCSessionDescription;
+    offer?: RTCSessionDescriptionInit;
+    answer?: RTCSessionDescriptionInit;
+    candidate?: RTCIceCandidateInit;
+    [key: string]: any;
 }

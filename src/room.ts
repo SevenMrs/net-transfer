@@ -54,7 +54,7 @@ class Room {
         this._heardBeat(device);
 
         this._send(device, JSON.stringify({
-            'type': "connection_success",
+            'type': "connect",
             'info': device.info,
         }))
     }
@@ -152,11 +152,14 @@ class Room {
         // 处理消息
         switch (msg.type) {
             case 'pong':
-                const lastBeatTime: number = sender.setLastBeatTime(true);
-                // console.log('设备心跳续期', sender.Id, lastBeatTime)
+                sender.setLastBeatTime(true);
                 break;
             case 'disconnect':
                 this._leaveRoom(sender);
+                break;
+            case 'channel':
+                break;
+            case 'answer':
                 break;
             default:
                 break;
