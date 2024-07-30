@@ -1,0 +1,54 @@
+#upload {
+    width: 80%;
+    height: 250px;
+    max-width: 550px;
+    max-height: 300px;
+    background-color: #FBFBFB;
+    border-radius: 30px;
+    /* 阴影 */
+    box-shadow: -5px 20px 50px #c5d2f8;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    cursor: pointer;
+}
+
+#upload-submit {
+    width: 100px;
+    height: 30px;
+    border-radius: 20px;
+    background-color: #6fa0f2;
+    border: none;
+}
+
+#file {
+    width: 90%;
+    height: 170px;
+    border-radius: 30px;
+    border: 2px dashed #c5d2f8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.text1 {
+    font-size: 25px;
+}
+
+#text2 {
+    font-size: 13px;
+    margin: 15px 0 0 0;
+}
+
+.color {
+    color: #6fa0f2;
+    font-weight: bold;
+}
+
+#other {
+    color: #6fa0f2;
+    text-decoration: underline;
+}

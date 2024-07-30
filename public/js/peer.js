@@ -2,6 +2,12 @@ let peer;
 let channel;
 let targetPeerId;
 
+let receivedBuffers = [];
+let receivedSize = 0;
+let fileName = '';
+let fileType = '';
+
+
 /**
  * 连接到目标设备
  * @param target
@@ -47,10 +53,29 @@ function connectToDevice(target) {
 function answer(message) {
     peer.ondatachannel = e => {
         channel = e.channel;
-        channel.onmessage = e => console.log(e.data);
+        channel.binaryType = 'arraybuffer';
+        // channel.onmessage = e => console.log(e.data);
         channel.onopen = () => console.log("传输通道接入成功!");
         channel.onerror = e => console.error('Data Channel Error:', e);
         channel.onclose = () => console.log("Data channel closed");
+        channel.onmessage = (event) => {
+            if (typeof event.data === 'string') {
+                try {
+                    const metadata = JSON.parse(event.data);
+                    fileName = metadata.name;
+                    fileType = metadata.type;
+                } catch (e) {
+                    if (event.data === 'EOF') {
+                        // 所有块已接收
+                        const receivedBlob = new Blob(receivedBuffers, {type: fileType});
+                        saveFile(receivedBlob, fileName);
+                    }
+                }
+            } else if (event.data instanceof ArrayBuffer) {
+                receivedBuffers.push(event.data);
+                receivedSize += event.data.byteLength;
+            }
+        };
     };
 
     peer.setRemoteDescription(new RTCSessionDescription(message.data))
@@ -81,6 +106,19 @@ function answer(message) {
             appendInfoElement();
         })
         .catch(error => console.error('Error creating answer:', error));
+}
+
+// 保存文件并触发下载
+function saveFile(blob, fileName) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName || 'downloaded_file';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url); // 释放内存
+    console.log('File downloaded successfully as', fileName);
 }
 
 function appendInfoElement() {

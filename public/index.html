@@ -6,9 +6,30 @@
     <title>🛜Intranet upload</title>
     <link rel="stylesheet" href="./css/index.css">
     <link rel="stylesheet" href="./css/device-item.css">
+    <link rel="stylesheet" href="./css/upload.css">
 </head>
 <body>
     <ul id="device-list"></ul>
+
+    <div id="upload">
+        <div id="file">
+            <span class="text1">
+                Drag & drop <span class="color">images</span>,
+            </span>
+            <span class="text1">
+                <span class="color">videos</span>, or any <span class="color">file</span>
+            </span>
+            <span id="text2">
+                or
+                <span id="other">
+                    browse file
+                    <input id="fileInput" type="file" style="display: none">
+                </span>
+                on your computer
+            </span>
+        </div>
+        <button id="upload-submit">✈️</button>
+    </div>
 
     <footer class="footer">
         <span id="connection"></span>
@@ -21,5 +42,6 @@
     <script src="./js/index.js"></script>
     <script src="./js/peer.js"></script>
     <script src="./js/ui.js"></script>
+    <script src="./js/upload.js"></script>
 </body>
 </html>

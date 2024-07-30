@@ -6,7 +6,13 @@ body {
     height: 100vh;
     display: flex;
     flex-direction: column;
+    align-items: center;
     justify-content: space-between;
+    user-select: none;
+}
+
+img {
+    pointer-events:none;
 }
 
 .footer {
