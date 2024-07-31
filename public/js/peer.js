@@ -2,6 +2,7 @@ let peer;
 let channel;
 let targetPeerId;
 
+// 文件传输使用参数
 let receivedBuffers = [];
 let receivedSize = 0;
 let fileName = '';
@@ -10,15 +11,14 @@ let fileType = '';
 
 /**
  * 连接到目标设备
- * @param target
+ * @param target 目标设备ID
  */
 function connectToDevice(target) {
     channel = peer.createDataChannel(generateUUID());
     channel.onopen = () => console.log("传输通道连接成功!");
-    channel.onerror = e => console.error('Data Channel Error:', e);
-    channel.onclose = () => console.log("Data channel closed");
-    channel.onmessage = e => console.log(e.data);
-    console.log('节点准备就绪, 发送信息连接远程节点!');
+    channel.onerror = e => console.error('数据传输通道异常:', e);
+    channel.onclose = () => console.log("数据通道关闭!");
+    channel.onmessage = event => onMessage(event);
 
     peer.createOffer()
         .then(offer => peer.setLocalDescription(offer))
@@ -48,34 +48,16 @@ function connectToDevice(target) {
 
 /**
  * 加入到远程会话中
- * @param message
+ * @param message 远程设备信息
  */
 function answer(message) {
     peer.ondatachannel = e => {
         channel = e.channel;
         channel.binaryType = 'arraybuffer';
-        // channel.onmessage = e => console.log(e.data);
         channel.onopen = () => console.log("传输通道接入成功!");
-        channel.onerror = e => console.error('Data Channel Error:', e);
-        channel.onclose = () => console.log("Data channel closed");
-        channel.onmessage = (event) => {
-            if (typeof event.data === 'string') {
-                try {
-                    const metadata = JSON.parse(event.data);
-                    fileName = metadata.name;
-                    fileType = metadata.type;
-                } catch (e) {
-                    if (event.data === 'EOF') {
-                        // 所有块已接收
-                        const receivedBlob = new Blob(receivedBuffers, {type: fileType});
-                        saveFile(receivedBlob, fileName);
-                    }
-                }
-            } else if (event.data instanceof ArrayBuffer) {
-                receivedBuffers.push(event.data);
-                receivedSize += event.data.byteLength;
-            }
-        };
+        channel.onerror = e => console.error('数据通道异常:', e);
+        channel.onclose = () => console.log("数据通道关闭!");
+        channel.onmessage = event => onMessage(event);
     };
 
     peer.setRemoteDescription(new RTCSessionDescription(message.data))
@@ -108,7 +90,37 @@ function answer(message) {
         .catch(error => console.error('Error creating answer:', error));
 }
 
-// 保存文件并触发下载
+/**
+ * 接受到消息之后执行下载的逻辑
+ * @param event
+ */
+function onMessage(event) {
+    if (typeof event.data === 'string') {
+        try {
+            const metadata = JSON.parse(event.data);
+            fileName = metadata.name;
+            fileType = metadata.type;
+        } catch (e) {
+            if (event.data === 'EOF') {
+                // 所有块已接收
+                const receivedBlob = new Blob(receivedBuffers, {type: fileType});
+                saveFile(receivedBlob, fileName);
+
+                // 发送确认消息
+                channel.send('FILE_RECEIVED');
+            }
+        }
+    } else if (event.data instanceof ArrayBuffer) {
+        receivedBuffers.push(event.data);
+        receivedSize += event.data.byteLength;
+    }
+}
+
+/**
+ * 保存文件并触发下载
+ * @param blob
+ * @param fileName
+ */
 function saveFile(blob, fileName) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -121,23 +133,31 @@ function saveFile(blob, fileName) {
     console.log('File downloaded successfully as', fileName);
 }
 
+/**
+ * 通道连接上之后页面显示信息
+ */
 function appendInfoElement() {
     const connection = document.getElementById('connection');
     connection.textContent = `已连接`;
-    setUploadWinStyle(true)
+    toggleUpload(true)
 }
 
+/**
+ * 通道断开后 页面响应信息
+ * @param id
+ */
 function updateInfoElement(id) {
     if (id !== targetPeerId) return;
     const connection = document.getElementById('connection');
     connection.textContent = `连接已断开`;
-    setUploadWinStyle(false)
+    toggleUpload(false)
+    transfer_file = null
 }
 
-function setUploadWinStyle(styleStatus) {
-    toggleUpload(styleStatus);
-}
-
+/**
+ * 页面文件上传窗体的CSS效果
+ * @param show
+ */
 function toggleUpload(show) {
     document.getElementById('upload').classList.toggle('show', show);
     document.getElementById('file').classList.toggle('show', show);
