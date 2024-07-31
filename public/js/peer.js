@@ -124,12 +124,23 @@ function saveFile(blob, fileName) {
 function appendInfoElement() {
     const connection = document.getElementById('connection');
     connection.textContent = `已连接`;
+    setUploadWinStyle(true)
 }
 
 function updateInfoElement(id) {
     if (id !== targetPeerId) return;
     const connection = document.getElementById('connection');
     connection.textContent = `连接已断开`;
+    setUploadWinStyle(false)
+}
+
+function setUploadWinStyle(styleStatus) {
+    toggleUpload(styleStatus);
+}
+
+function toggleUpload(show) {
+    document.getElementById('upload').classList.toggle('show', show);
+    document.getElementById('file').classList.toggle('show', show);
 }
 
 window.onload = function () {
