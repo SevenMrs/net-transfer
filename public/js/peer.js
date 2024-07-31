@@ -5,6 +5,7 @@ let targetPeerId;
 // 文件传输使用参数
 let receivedBuffers = [];
 let receivedSize = 0;
+let expectedSize = 0;
 let fileName = '';
 let fileType = '';
 
@@ -97,24 +98,38 @@ function answer(message) {
 function onMessage(event) {
     if (typeof event.data === 'string') {
         try {
-            const metadata = JSON.parse(event.data);
-            fileName = metadata.name;
-            fileType = metadata.type;
-        } catch (e) {
-            if (event.data === 'EOF') {
-                // 所有块已接收
-                const receivedBlob = new Blob(receivedBuffers, {type: fileType});
-                saveFile(receivedBlob, fileName);
+            const parsedData = JSON.parse(event.data);
 
-                // 发送确认消息
-                channel.send('FILE_RECEIVED');
+            if (parsedData.name && parsedData.type) {
+                // 处理文件元数据
+                fileName = parsedData.name;
+                fileType = parsedData.type;
+                expectedSize = parsedData.size;
+            } else if (parsedData.index >= 0 && parsedData.data) {
+                // 处理文件数据块
+                const arrayBuffer = base64ToArrayBuffer(parsedData.data);
+                receivedBuffers[parsedData.index] = arrayBuffer;
+                receivedSize += arrayBuffer.byteLength;
+            } else if (parsedData.schedule === 'EOF') {
+                // 文件接收完成
+                const receivedBlob = new Blob(receivedBuffers, {type: fileType});
+                if (receivedSize === expectedSize) {
+                    saveFile(receivedBlob, fileName);
+                    console.log('文件接收完成：', fileName);
+                    channel.send('FILE_RECEIVED');
+                } else {
+                    console.error('文件接收不完整，预期大小:', expectedSize, '实际接收大小:', receivedSize);
+                    channel.send('FILE_DAMAGE');
+                }
+                initUploadFileParam()
             }
+        } catch (e) {
+            // console.error('解析数据时出错:', e);
+            // initUploadFileParam()
         }
-    } else if (event.data instanceof ArrayBuffer) {
-        receivedBuffers.push(event.data);
-        receivedSize += event.data.byteLength;
     }
 }
+
 
 /**
  * 保存文件并触发下载
@@ -130,7 +145,7 @@ function saveFile(blob, fileName) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url); // 释放内存
-    console.log('File downloaded successfully as', fileName);
+    console.log('文件下载成功: ', fileName);
 }
 
 /**
@@ -162,6 +177,15 @@ function toggleUpload(show) {
     document.getElementById('upload').classList.toggle('show', show);
     document.getElementById('file').classList.toggle('show', show);
 }
+
+function initUploadFileParam() {
+    receivedBuffers = [];
+    receivedSize = 0;
+    expectedSize = 0;
+    fileName = '';
+    fileType = '';
+}
+
 
 window.onload = function () {
     peer = new RTCPeerConnection();

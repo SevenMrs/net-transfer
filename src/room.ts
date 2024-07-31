@@ -12,25 +12,9 @@ class Room {
 
     constructor(port: number) {
         this._wss = new WebSocket.Server({port: port});
-        // this._wss.on('headers', (headers: string[], response: IncomingMessage) => this._onHeaders(headers, response))
         this._wss.on('connection', (socket: WebSocket, request: IncomingMessage) => this._onConnection(socket, request))
         this._session = new Map<string, Device>();
     }
-
-    /**
-     * 处理 HTTP 头部，设置或更新 Cookie
-     * @param headers HTTP 头部
-     * @param response HTTP 响应对象
-     * @private
-     */
-    // private _onHeaders(headers: string[], response: IncomingMessage) {
-    //     const cookies: string = response.headers.cookie || '';
-    //     if (cookies.includes('deviceId=')) return;
-    //
-    //     const deviceId: string = common.uuid();
-    //     headers.push(`Set-Cookie: deviceId=${deviceId};`);
-    //     console.log('设备初次连接，设置设备ID', deviceId)
-    // }
 
     /**
      * 设备连接到当前服务上
