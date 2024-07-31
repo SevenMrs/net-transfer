@@ -101,6 +101,8 @@ function onMessage(event) {
             const parsedData = JSON.parse(event.data);
 
             if (parsedData.name && parsedData.type) {
+                initUploadFileParam();
+                console.log(parsedData);
                 // 处理文件元数据
                 fileName = parsedData.name;
                 fileType = parsedData.type;
@@ -121,15 +123,13 @@ function onMessage(event) {
                     console.error('文件接收不完整，预期大小:', expectedSize, '实际接收大小:', receivedSize);
                     channel.send('FILE_DAMAGE');
                 }
-                initUploadFileParam()
+                initUploadFileParam();
             }
         } catch (e) {
             // console.error('解析数据时出错:', e);
-            // initUploadFileParam()
         }
     }
 }
-
 
 /**
  * 保存文件并触发下载
