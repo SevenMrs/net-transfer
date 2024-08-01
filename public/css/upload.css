@@ -135,3 +135,33 @@
 .close-btn:hover {
     color: #333;
 }
+
+#progress-container {
+    width: 90%;
+    height: 20px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    margin-top: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+#progress-bar {
+    width: 0;
+    height: 100%;
+    background-color: #6fa0f2;
+    transition: width 0.3s ease;
+}
+
+#progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #333;
+    font-size: 12px;
+}
+
+#progress-container.hidden {
+    display: none;
+}
