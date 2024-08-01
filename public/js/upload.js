@@ -77,8 +77,8 @@ function readAndQueueChunk(index) {
 
     const reader = new FileReader();
     reader.onload = function (e) {
+        // 转码之后(JSONString 没法直接传输ArrayBuffer) 塞队列
         const base64Data = arrayBufferToBase64(e.target.result);
-        // 加密结束之后 塞队列
         queueChunk(JSON.stringify({index: index, data: base64Data}));
         if (index === Math.ceil(transfer_file.size / CHUNK_SIZE) - 1) {
             queueChunk(JSON.stringify({schedule: 'EOF'}));
