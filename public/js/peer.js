@@ -9,10 +9,6 @@ let expectedSize = 0;
 let fileName = '';
 let fileType = '';
 
-//流控制参数
-const CHUNK_SIZE = 1024 * 160; // (128kb + 32kb) 最大好像就是这么大, 再大就撕裂了
-let sendQueue = [];
-
 /**
  * TODO 解决单台设备多通道打通的问题
  * 连接到目标设备
@@ -112,7 +108,7 @@ function onMessage(event) {
                 receivedBuffers[parsedData.index] = arrayBuffer;
                 receivedSize += arrayBuffer.byteLength;
 
-                // 新增: 发送确认接收消息
+                // 发送确认接收消息
                 channel.send(JSON.stringify({type: 'ACK', index: parsedData.index}));
             } else if (parsedData.schedule === 'EOF') {
                 // 文件接收完成
@@ -129,6 +125,7 @@ function onMessage(event) {
             }
         } catch (e) {
             console.error('解析数据时出错:', e);
+            // TODO 失败了 是否发送消息? 队列又裂了等情况
         }
     }
 }

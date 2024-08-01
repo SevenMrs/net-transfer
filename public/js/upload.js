@@ -2,7 +2,10 @@ let transfer_file;
 const MAX_BUFFER_SIZE = 1024 * 1024; // 1MB buffer
 let isSending = false;
 
+//流控制参数
 let totalChunks = 0;
+let sendQueue = [];
+const CHUNK_SIZE = 1024 * 160; // (128kb + 32kb) 最大好像就是这么大, 再大就撕裂了
 
 (function () {
     // DOM节点时间监听
@@ -51,6 +54,7 @@ function sendFile() {
     });
     queueChunk(fileMetadata);
 
+    // 计算分片数量, 并设置进度条样式
     totalChunks = Math.ceil(transfer_file.size / CHUNK_SIZE);
     updateProgress(0);
     document.getElementById('progress-container').classList.remove('hidden');
@@ -74,6 +78,7 @@ function readAndQueueChunk(index) {
     const reader = new FileReader();
     reader.onload = function (e) {
         const base64Data = arrayBufferToBase64(e.target.result);
+        // 加密结束之后 塞队列
         queueChunk(JSON.stringify({index: index, data: base64Data}));
         if (index === Math.ceil(transfer_file.size / CHUNK_SIZE) - 1) {
             queueChunk(JSON.stringify({schedule: 'EOF'}));
@@ -82,6 +87,10 @@ function readAndQueueChunk(index) {
     reader.readAsArrayBuffer(slice);
 }
 
+/**
+ * 将需要给数据通道发送的消息都加入到队列中
+ * @param chunk 消息块
+ */
 function queueChunk(chunk) {
     sendQueue.push(chunk);
     if (!isSending) {
@@ -90,23 +99,31 @@ function queueChunk(chunk) {
     }
 }
 
+/**
+ * 队列分片发送方法
+ */
 function sendNextChunk() {
     if (sendQueue.length === 0) {
         isSending = false;
         return;
     }
 
+    // 如果缓冲区的大小大于检测目标, 退出当前方法, 执行异步启动
     if (channel.bufferedAmount > MAX_BUFFER_SIZE) {
-        setTimeout(sendNextChunk, 100); // 等待100ms后重试
+        setTimeout(sendNextChunk, 100);
         return;
     }
 
+    // 执行了一个类似与递归的方法, 进行分片的数据发送
     const chunk = sendQueue.shift();
     channel.send(chunk);
-
     setTimeout(sendNextChunk, 0);
 }
 
+/**
+ * 进度条更新方法
+ * @param progress
+ */
 function updateProgress(progress) {
     requestAnimationFrame(() => {
         const progressBar = document.getElementById('progress-bar');
@@ -116,29 +133,30 @@ function updateProgress(progress) {
     })
 }
 
+/**
+ * 对响应消息进行解析
+ * @param event
+ */
 function handleFileTransferResponse(event) {
+
+    function endFunc() {
+        sendQueue = []; // 初始化队列的信息
+        isSending = false;
+        channel.removeEventListener('message', handleFileTransferResponse); // 删除消息监听, 防止内存泄漏
+        document.getElementById('progress-container').classList.add('hidden'); // 隐藏进度条
+    }
+
     const response = JSON.parse(event.data);
     if (response.type === 'FILE_RECEIVED') {
         console.log(transfer_file.name, '文件发送成功!');
-        resetSendState();
-        channel.removeEventListener('message', handleFileTransferResponse);
+        endFunc();
         document.querySelector('.close-btn').click();
-        // 隐藏进度条
-        document.getElementById('progress-container').classList.add('hidden');
     } else if (response.type === 'FILE_DAMAGE') {
         console.log(transfer_file.name, '文件损坏!');
-        resetSendState();
-        channel.removeEventListener('message', handleFileTransferResponse);
-        // 隐藏进度条
-        document.getElementById('progress-container').classList.add('hidden');
+        endFunc();
     } else if (response.type === 'ACK') {
         // 可以在这里实现更复杂的流控制逻辑
         console.log(`Chunk ${response.index} acknowledged`);
         updateProgress((response.index + 1) / totalChunks * 100);
     }
-}
-
-function resetSendState() {
-    sendQueue = [];
-    isSending = false;
 }
