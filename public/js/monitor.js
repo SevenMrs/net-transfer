@@ -77,6 +77,7 @@ function handleOther(list) {
 }
 
 /**
+ * TODO 显示位置排列方式
  * 将新的设备新增到页面中
  * @param {{}} info
  */

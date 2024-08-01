@@ -3,7 +3,6 @@ const MAX_BUFFER_SIZE = 1024 * 1024; // 1MB buffer
 let isSending = false;
 
 let totalChunks = 0;
-let sentChunks = 0;
 
 (function () {
     // DOM节点时间监听
@@ -53,7 +52,6 @@ function sendFile() {
     queueChunk(fileMetadata);
 
     totalChunks = Math.ceil(transfer_file.size / CHUNK_SIZE);
-    sentChunks = 0;
     updateProgress(0);
     document.getElementById('progress-container').classList.remove('hidden');
 
@@ -106,19 +104,16 @@ function sendNextChunk() {
     const chunk = sendQueue.shift();
     channel.send(chunk);
 
-    // 更新进度
-    sentChunks++;
-    const progress = (sentChunks / totalChunks) * 100;
-    updateProgress(progress);
-
     setTimeout(sendNextChunk, 0);
 }
 
 function updateProgress(progress) {
-    const progressBar = document.getElementById('progress-bar');
-    const progressText = document.getElementById('progress-text');
-    progressBar.style.width = `${progress}%`;
-    progressText.textContent = `${Math.round(progress)}%`;
+    requestAnimationFrame(() => {
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        progressBar.style.width = `${progress}%`;
+        progressText.textContent = `${Math.round(progress)}%`;
+    })
 }
 
 function handleFileTransferResponse(event) {
@@ -139,6 +134,7 @@ function handleFileTransferResponse(event) {
     } else if (response.type === 'ACK') {
         // 可以在这里实现更复杂的流控制逻辑
         console.log(`Chunk ${response.index} acknowledged`);
+        updateProgress((response.index + 1) / totalChunks * 100);
     }
 }
 

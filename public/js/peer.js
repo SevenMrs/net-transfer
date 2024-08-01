@@ -14,6 +14,7 @@ const CHUNK_SIZE = 1024 * 160; // (128kb + 32kb) 最大好像就是这么大, �
 let sendQueue = [];
 
 /**
+ * TODO 解决单台设备多通道打通的问题
  * 连接到目标设备
  * @param target 目标设备ID
  */
