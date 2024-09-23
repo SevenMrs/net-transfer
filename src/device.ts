@@ -16,7 +16,7 @@ class Device {
      * @private
      */
     private lastBeat: number = Date.now();
-    private heartbeat: NodeJS.Timeout | null = null;
+    private heartbeat: NodeJS.Timer | null = null;
 
     constructor(ip: string, id: string, name: string, socket: WebSocket) {
         this.ip = ip;
