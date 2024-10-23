@@ -49,3 +49,5 @@
 本项目在开发过程中参考了 [Snapdrop](https://snapdrop.net) 的源代码。特别感谢 Snapdrop 项目的贡献者们提供的开源代码和灵感。本项目仅对 Snapdrop 的部分功能进行了 Web 页面的简单封装和展示。
 
 ---
+
+如果你在使用过程中遇到任何问题，或者有任何建议，欢迎通过 [Issues](https://github.com/SevenMrs/net-transfer/issues)与我联系。
