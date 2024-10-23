@@ -1,4 +1,4 @@
-# 内网文件传输Demo
+# 内网文件传输
 
 这个项目是一个基于 [Snapdrop](https://snapdrop.net) 的小 Demo，它实现了一个内网文件传输的功能。Snapdrop 是一个使用 WebRTC 和 WebSockets 技术的开源项目，允许用户在不同设备之间直接传输文件。本项目参考并结合了 Snapdrop 的源代码来实现类似的功能。
 
